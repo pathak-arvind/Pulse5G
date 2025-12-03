@@ -1,96 +1,99 @@
 # Pulse5G — Real-Time Network Intelligence & Device Health Platform (Demo)
 
-Pulse5G is a prototype command-line tool (Java) that collects device and cellular network metrics from an Android device using **ADB (Android Debug Bridge)**, computes network details (including a Network Quality Score), and prints human-readable diagnostics. This repository contains the Java source files for the prototype used in a 5G hackathon.
-
-> **Important privacy note:** This tool may read sensitive device identifiers (IMEI) and phone numbers when run on a real device. **Do not commit real device outputs or PII to this repository.** See **Privacy & Security** below.
+Pulse5G is a Java-based command-line prototype for analyzing mobile network conditions through Android Debug Bridge (ADB). It extracts network type, signal metrics, SIM state, device details, and prints structured diagnostics for 2G/3G/4G/5G connectivity.
 
 ---
 
-## Contents
+## 📌 Features
 
-- `MainMenu.java` — entry point and menu UI (CLI).
-- `AdbCommandExecutor.java` — executes ADB calls to fetch SIM state, phone number, IMEI, OS version, product model.
-- `NetworkTypeChecker.java` — parses `dumpsys telephony.registry` to detect network type and extract signal metrics.
-- `SignalInfoDetailedParser.java` — prints detailed cell identity and registration info.
-- `Manuals.java` — simple user manual printed from the CLI.
+- Detects SIM state and device readiness via ADB  
+- Reads network type from `dumpsys telephony.registry`  
+- Extracts 5G/4G/3G/2G signal metrics (RSRP, RSRQ, RSSI, SINR, etc.)  
+- Fetches device OS version and product model  
+- Provides detailed cell information  
+- Simple command-line menu interface  
+- Works on real devices connected over USB with USB debugging enabled
 
 ---
 
-## Quick start (demo mode)
+## 📁 Project Structure
 
-### Prerequisites
-- Java JDK 11+ installed.
-- `adb` in your PATH (Android SDK platform-tools). On Linux/macOS, make sure `adb` is executable.
-- USB debugging enabled on the Android device (or use an emulator that exposes required dumpsys outputs).
+```
+Pulse5G/
+├── MainMenu.java
+├── AdbCommandExecutor.java
+├── NetworkTypeChecker.java
+├── SignalInfoDetailedParser.java
+└── Manuals.java
+```
 
-### Build & run (simple)
-From the repo root (sources should be under `src/` or you can compile directly):
+---
+
+## 🚀 Getting Started
+
+### Requirements
+- Java JDK 11+
+- ADB installed and added to PATH  
+  (`adb devices` must show your phone)
+- USB Debugging enabled on the Android device
+
+### Compile
+If Java files are in the same folder:
 
 ```bash
-# compile (if .java files are in current directory)
 javac *.java
+```
 
-# run
+### Run
+```bash
 java MainMenu
 ```
 
-If you keep sources under `src/main/java` follow standard `javac -d out $(find src -name "*.java")` then run `java -cp out MainMenu`.
+---
+
+## ⚙️ How It Works
+
+1. The program checks whether an ADB-connected device is available.
+2. Based on menu selections, it executes commands such as:
+   - `adb shell getprop gsm.sim.state`
+   - `adb shell dumpsys telephony.registry`
+   - `adb shell getprop ro.product.model`
+3. The output is parsed to:
+   - Determine network type (5G/4G/3G/2G/WiFi Calling)
+   - Extract important signal metrics
+   - Display device information
+4. The CLI prints all results in a formatted, human-readable way.
 
 ---
 
-## How it works (high level)
+## 🔒 Privacy Notice
 
-1. `MainMenu` shows a CLI that checks for ADB device presence.
-2. Upon selection, the program runs ADB commands to fetch:
-   - SIM state (`adb shell getprop gsm.sim.state`)
-   - Telephony dumps (`adb shell dumpsys telephony.registry`)
-   - Service-call outputs to attempt phone/IMEI retrieval
-3. Output is parsed and formatted into human-readable network details (2G/3G/4G/5G specifics).
-4. `SignalInfoDetailedParser` prints cell identity and other registration fields.
+Some ADB commands may reveal **sensitive device identifiers** such as:
 
----
+- Phone numbers  
+- IMEI numbers  
 
-## Important security & correctness notes (read before running)
-
-- **Shell pipelines:** Some code uses shell pipelines (cut/tr/tr) — those require executing via an actual shell. If running on Unix, the code must invoke `/bin/sh -c "<command>"` (see source comments). Without that, pipeline commands will fail.
-- **Sensitive output:** The tool may print IMEI and phone numbers. **Mask sensitive output** before saving or sharing. Consider setting a flag to mask identifiers.
-- **Device variability:** `dumpsys` outputs differ across Android versions and manufacturers; the parser is best-effort and may not work on all devices.
-- **Permissions & ADB:** Ensure `adb devices` lists your device before using options that require device information.
-- **Do NOT commit device outputs** (IMEI, phone numbers, call logs, screenshots with PII).
+These values are **never stored** by the program and are only displayed locally.  
+Do NOT commit logs containing real device data to GitHub.
 
 ---
 
-## Recommended safe workflow for demo / evaluation
+## ⚡ Notes
 
-1. Create a sanitized test device/emulator or use anonymized sample outputs (place under `docs/samples/`).
-2. Add `--mask-sensitive` mode (or an environment variable) so IMEI/phone numbers are masked during demo.
-3. If you must include sample outputs in repo, **sanitize** them first (e.g., replace digits with `X`).
-
----
-
-## Known limitations (be honest in interviews)
-- Parsing logic is brittle — depends on manufacturer & Android version.
-- Service call numbers used to fetch phone/IMEI are device-specific (magic numbers used).
-- No retry/backoff or advanced error handling for adb unavailability or permission prompts.
-- The CLI blocks while waiting for user input and runs long-running commands synchronously.
+- Works best on modern Android phones (Android 10+).  
+- ADB access must be allowed on the device when prompted.  
+- Dumpsys output may vary slightly across manufacturers.
 
 ---
 
-## Suggested improvements (todo)
-- Replace all `Runtime.exec` usages with `ProcessBuilder` and use `redirectErrorStream(true)` and proper stream gobblers.
-- Add a configuration file / constants for service-call indices, and a flag to mask PII.
-- Add `--help` and `--non-interactive` modes for automation.
-- Add unit tests: store **sanitized** sample dumpsys outputs and write parsers against them.
-- Use a logging library (SLF4J / JUL) instead of `System.out.println`.
+## 📜 License
+
+This project is licensed under the MIT License.
 
 ---
 
-## Privacy & License
-- **Privacy:** Do not upload logs or outputs containing IMEIs, phone numbers, or other personal information. The repository intentionally contains no real device data.
-- **License:** MIT (recommended). See `LICENSE` for terms.
+## 👤 Author
 
----
-
-## Contact
-Arvind Pathak — arvindpathak017@gmail.com
+**Arvind Pathak**  
+Email: arvindpathak017@gmail.com
 
